@@ -1,10 +1,17 @@
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
+
+# Load environment variables from the backend .env file so that dynamic
+# attributes (read via __getattr__ from os.environ) are populated during
+# normal uvicorn startup (the bash launcher used to export these manually).
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 
 class Settings(BaseSettings):

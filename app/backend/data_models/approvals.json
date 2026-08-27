@@ -1,0 +1,102 @@
+{
+    "title": "approvals",
+    "type": "object",
+    "description": "전자결재 문서 (근태담당자 -> 부서장 -> CEO)",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "doc_no": {
+            "type": "string"
+        },
+        "doc_type": {
+            "type": "string",
+            "description": "daily_close | weekend_work | leave_request | overtime_convert"
+        },
+        "title": {
+            "type": "string"
+        },
+        "target_date": {
+            "type": "string",
+            "format": "date"
+        },
+        "period_start": {
+            "type": "string",
+            "format": "date"
+        },
+        "period_end": {
+            "type": "string",
+            "format": "date"
+        },
+        "emp_no": {
+            "type": "string"
+        },
+        "department": {
+            "type": "string"
+        },
+        "requester_emp_no": {
+            "type": "string"
+        },
+        "requester_name": {
+            "type": "string"
+        },
+        "current_step": {
+            "type": "string",
+            "description": "hr | manager | ceo | completed | rejected"
+        },
+        "status": {
+            "type": "string",
+            "description": "pending | approved | rejected"
+        },
+        "hr_approver": {
+            "type": "string"
+        },
+        "hr_approved_at": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "hr_comment": {
+            "type": "string"
+        },
+        "manager_approver": {
+            "type": "string"
+        },
+        "manager_approved_at": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "manager_comment": {
+            "type": "string"
+        },
+        "ceo_approver": {
+            "type": "string"
+        },
+        "ceo_approved_at": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "ceo_comment": {
+            "type": "string"
+        },
+        "rejected_by": {
+            "type": "string"
+        },
+        "reject_reason": {
+            "type": "string"
+        },
+        "record_count": {
+            "type": "integer"
+        },
+        "summary": {
+            "type": "string"
+        },
+        "payload": {
+            "type": "string",
+            "description": "대상 레코드 ID 등 JSON"
+        }
+    },
+    "required": [
+        "doc_type",
+        "title"
+    ]
+}

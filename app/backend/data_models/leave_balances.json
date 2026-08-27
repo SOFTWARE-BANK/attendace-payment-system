@@ -1,0 +1,47 @@
+{
+    "title": "leave_balances",
+    "type": "object",
+    "description": "직원별 법정휴가 잔여 관리",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "emp_no": {
+            "type": "string"
+        },
+        "employee_name": {
+            "type": "string"
+        },
+        "department": {
+            "type": "string"
+        },
+        "year": {
+            "type": "integer"
+        },
+        "leave_type": {
+            "type": "string",
+            "description": "annual | statutory | sick | special | converted"
+        },
+        "granted_days": {
+            "type": "number"
+        },
+        "used_days": {
+            "type": "number"
+        },
+        "pending_days": {
+            "type": "number"
+        },
+        "converted_days": {
+            "type": "number",
+            "description": "연장근무 전환 적립 일수"
+        },
+        "note": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "emp_no",
+        "year",
+        "leave_type"
+    ]
+}

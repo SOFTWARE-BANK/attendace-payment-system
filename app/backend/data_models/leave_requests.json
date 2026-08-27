@@ -1,0 +1,61 @@
+{
+    "title": "leave_requests",
+    "type": "object",
+    "description": "휴가 사용 품의서",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "emp_no": {
+            "type": "string"
+        },
+        "employee_name": {
+            "type": "string"
+        },
+        "department": {
+            "type": "string"
+        },
+        "leave_type": {
+            "type": "string",
+            "description": "annual | statutory | sick | special | converted"
+        },
+        "start_date": {
+            "type": "string",
+            "format": "date"
+        },
+        "end_date": {
+            "type": "string",
+            "format": "date"
+        },
+        "days": {
+            "type": "number"
+        },
+        "half_day_type": {
+            "type": "string",
+            "description": "full | am | pm"
+        },
+        "reason": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "description": "pending | approved | rejected | cancelled"
+        },
+        "approval_id": {
+            "type": "integer"
+        },
+        "reflected": {
+            "type": "boolean",
+            "description": "근태 반영 완료 여부"
+        },
+        "reflected_count": {
+            "type": "integer"
+        }
+    },
+    "required": [
+        "emp_no",
+        "leave_type",
+        "start_date",
+        "end_date"
+    ]
+}

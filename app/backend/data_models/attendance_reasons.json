@@ -1,0 +1,48 @@
+{
+    "title": "attendance_reasons",
+    "type": "object",
+    "description": "근태 사유 코드 마스터",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "code": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "category": {
+            "type": "string",
+            "description": "late | early_leave | absent | leave | holiday_work | business_trip | etc"
+        },
+        "pay_effect": {
+            "type": "string",
+            "description": "paid | unpaid | deduct | premium"
+        },
+        "deduct_rate": {
+            "type": "number",
+            "description": "급여 삭감률 0~1"
+        },
+        "requires_approval": {
+            "type": "boolean"
+        },
+        "offsettable": {
+            "type": "boolean",
+            "description": "Extra 근무시간으로 상계 가능 여부"
+        },
+        "sort_order": {
+            "type": "integer"
+        },
+        "description": {
+            "type": "string"
+        },
+        "active": {
+            "type": "boolean"
+        }
+    },
+    "required": [
+        "code",
+        "name"
+    ]
+}

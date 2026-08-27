@@ -1,0 +1,62 @@
+{
+    "title": "overtime_banks",
+    "type": "object",
+    "description": "연장/Extra 근무시간 적립 및 휴가전환·지각상계 사용내역",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "emp_no": {
+            "type": "string"
+        },
+        "employee_name": {
+            "type": "string"
+        },
+        "department": {
+            "type": "string"
+        },
+        "txn_type": {
+            "type": "string",
+            "description": "earn | convert_leave | offset_late | expire | adjust"
+        },
+        "txn_date": {
+            "type": "string",
+            "format": "date"
+        },
+        "source_date": {
+            "type": "string",
+            "format": "date",
+            "description": "적립 근원 근무일"
+        },
+        "minutes": {
+            "type": "integer",
+            "description": "적립은 양수, 사용은 음수"
+        },
+        "balance_after": {
+            "type": "integer"
+        },
+        "target_leave_days": {
+            "type": "number",
+            "description": "휴가 전환 일수"
+        },
+        "target_attendance_id": {
+            "type": "integer",
+            "description": "지각 상계 대상 근태 ID"
+        },
+        "status": {
+            "type": "string",
+            "description": "pending | approved | rejected"
+        },
+        "approval_id": {
+            "type": "integer"
+        },
+        "note": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "emp_no",
+        "txn_type",
+        "minutes"
+    ]
+}

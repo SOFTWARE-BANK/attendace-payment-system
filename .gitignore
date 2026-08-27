@@ -1,0 +1,34 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Local databases and logs
+*.db
+*.sqlite
+*.sqlite3
+app/backend/logs/*
+!app/backend/logs/.gitkeep
+
+# JavaScript dependencies and build output
+**/node_modules/
+app/frontend/dist/
+app/frontend/.vite/
+
+# Package-manager artifacts generated accidentally
+app/backend/package-lock.json
+app/frontend/package-lock.json
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

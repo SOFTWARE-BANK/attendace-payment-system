@@ -1,0 +1,114 @@
+{
+    "title": "daily_attendances",
+    "type": "object",
+    "description": "일일 근태 정산 결과",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "emp_no": {
+            "type": "string"
+        },
+        "employee_name": {
+            "type": "string"
+        },
+        "department": {
+            "type": "string"
+        },
+        "work_date": {
+            "type": "string",
+            "format": "date"
+        },
+        "day_type": {
+            "type": "string",
+            "description": "weekday | saturday | sunday | holiday"
+        },
+        "raw_check_in": {
+            "type": "string",
+            "format": "date-time",
+            "description": "단말기 최초 입장"
+        },
+        "raw_check_out": {
+            "type": "string",
+            "format": "date-time",
+            "description": "단말기 최종 퇴장"
+        },
+        "check_in": {
+            "type": "string",
+            "format": "date-time",
+            "description": "확정 출근시간"
+        },
+        "check_out": {
+            "type": "string",
+            "format": "date-time",
+            "description": "확정 퇴근시간"
+        },
+        "log_count": {
+            "type": "integer",
+            "description": "당일 출입기록 수"
+        },
+        "scheduled_minutes": {
+            "type": "integer"
+        },
+        "work_minutes": {
+            "type": "integer"
+        },
+        "overtime_minutes": {
+            "type": "integer"
+        },
+        "night_minutes": {
+            "type": "integer"
+        },
+        "holiday_minutes": {
+            "type": "integer"
+        },
+        "late_minutes": {
+            "type": "integer"
+        },
+        "early_leave_minutes": {
+            "type": "integer"
+        },
+        "offset_minutes": {
+            "type": "integer",
+            "description": "지각 상계에 사용된 Extra 근무시간"
+        },
+        "status": {
+            "type": "string",
+            "description": "normal | late | early_leave | absent | leave | holiday_work | business_trip"
+        },
+        "reason_code": {
+            "type": "string"
+        },
+        "reason_note": {
+            "type": "string"
+        },
+        "adjusted": {
+            "type": "boolean"
+        },
+        "adjusted_by": {
+            "type": "string"
+        },
+        "adjust_history": {
+            "type": "string",
+            "description": "조정 이력 JSON 배열"
+        },
+        "confirm_status": {
+            "type": "string",
+            "description": "draft | submitted | manager_approved | ceo_approved | rejected"
+        },
+        "approval_id": {
+            "type": "integer"
+        },
+        "leave_request_id": {
+            "type": "integer"
+        },
+        "locked": {
+            "type": "boolean",
+            "description": "최종 승인 후 잠금"
+        }
+    },
+    "required": [
+        "emp_no",
+        "work_date"
+    ]
+}

@@ -1,0 +1,94 @@
+{
+    "title": "payroll_items",
+    "type": "object",
+    "description": "급여 집계 직원별 상세",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "payroll_run_id": {
+            "type": "integer"
+        },
+        "emp_no": {
+            "type": "string"
+        },
+        "employee_name": {
+            "type": "string"
+        },
+        "department": {
+            "type": "string"
+        },
+        "pay_cycle": {
+            "type": "string"
+        },
+        "period_start": {
+            "type": "string",
+            "format": "date"
+        },
+        "period_end": {
+            "type": "string",
+            "format": "date"
+        },
+        "regular_minutes": {
+            "type": "integer"
+        },
+        "overtime_minutes": {
+            "type": "integer"
+        },
+        "holiday_minutes": {
+            "type": "integer"
+        },
+        "night_minutes": {
+            "type": "integer"
+        },
+        "late_minutes": {
+            "type": "integer"
+        },
+        "offset_minutes": {
+            "type": "integer"
+        },
+        "absent_days": {
+            "type": "number"
+        },
+        "leave_days": {
+            "type": "number"
+        },
+        "work_days": {
+            "type": "integer"
+        },
+        "confirmed_days": {
+            "type": "integer"
+        },
+        "base_pay": {
+            "type": "number"
+        },
+        "overtime_pay": {
+            "type": "number"
+        },
+        "holiday_pay": {
+            "type": "number"
+        },
+        "night_pay": {
+            "type": "number"
+        },
+        "late_deduction": {
+            "type": "number"
+        },
+        "offset_credit": {
+            "type": "number",
+            "description": "Extra 근무로 상계된 금액"
+        },
+        "absent_deduction": {
+            "type": "number"
+        },
+        "gross_pay": {
+            "type": "number"
+        },
+        "net_pay": {
+            "type": "number"
+        }
+    },
+    "required": [
+        "emp_no"
+    ]
+}

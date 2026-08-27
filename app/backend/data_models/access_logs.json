@@ -1,0 +1,52 @@
+{
+    "title": "access_logs",
+    "type": "object",
+    "description": "Hikvision 얼굴인식 단말기 원시 출입기록",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "emp_no": {
+            "type": "string"
+        },
+        "employee_name": {
+            "type": "string"
+        },
+        "terminal_id": {
+            "type": "string",
+            "description": "단말기 ID"
+        },
+        "device_name": {
+            "type": "string"
+        },
+        "event_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "출입 발생시각"
+        },
+        "event_date": {
+            "type": "string",
+            "format": "date"
+        },
+        "event_type": {
+            "type": "string",
+            "description": "IN | OUT | ACCESS"
+        },
+        "auth_mode": {
+            "type": "string",
+            "description": "face | card | fingerprint"
+        },
+        "source": {
+            "type": "string",
+            "description": "upload | api | manual"
+        },
+        "raw_payload": {
+            "type": "string",
+            "description": "원본 레코드 JSON"
+        }
+    },
+    "required": [
+        "emp_no",
+        "event_time"
+    ]
+}

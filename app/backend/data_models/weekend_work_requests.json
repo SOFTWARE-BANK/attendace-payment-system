@@ -1,0 +1,71 @@
+{
+    "title": "weekend_work_requests",
+    "type": "object",
+    "description": "토요일/일요일 및 휴일 근무 관리",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "emp_no": {
+            "type": "string"
+        },
+        "employee_name": {
+            "type": "string"
+        },
+        "department": {
+            "type": "string"
+        },
+        "work_date": {
+            "type": "string",
+            "format": "date"
+        },
+        "day_type": {
+            "type": "string",
+            "description": "saturday | sunday | holiday"
+        },
+        "planned_start": {
+            "type": "string",
+            "description": "HH:MM"
+        },
+        "planned_end": {
+            "type": "string",
+            "description": "HH:MM"
+        },
+        "planned_minutes": {
+            "type": "integer"
+        },
+        "actual_start": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "actual_end": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "actual_minutes": {
+            "type": "integer"
+        },
+        "premium_rate": {
+            "type": "number",
+            "description": "휴일근무 가산율 예: 1.5"
+        },
+        "reason": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "description": "pending | approved | rejected | cancelled"
+        },
+        "approval_id": {
+            "type": "integer"
+        },
+        "matched": {
+            "type": "boolean",
+            "description": "실제 출입기록 대조 완료"
+        }
+    },
+    "required": [
+        "emp_no",
+        "work_date"
+    ]
+}

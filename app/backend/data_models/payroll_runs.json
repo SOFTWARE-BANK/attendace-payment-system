@@ -1,0 +1,52 @@
+{
+    "title": "payroll_runs",
+    "type": "object",
+    "description": "급여 지급주기별 집계 실행",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "run_name": {
+            "type": "string"
+        },
+        "pay_cycle": {
+            "type": "string",
+            "description": "weekly | biweekly | monthly"
+        },
+        "period_start": {
+            "type": "string",
+            "format": "date"
+        },
+        "period_end": {
+            "type": "string",
+            "format": "date"
+        },
+        "status": {
+            "type": "string",
+            "description": "draft | calculated | closed"
+        },
+        "employee_count": {
+            "type": "integer"
+        },
+        "total_amount": {
+            "type": "number"
+        },
+        "confirmed_only": {
+            "type": "boolean",
+            "description": "CEO 최종승인 근태만 집계"
+        },
+        "calculated_at": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "note": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "run_name",
+        "pay_cycle",
+        "period_start",
+        "period_end"
+    ]
+}

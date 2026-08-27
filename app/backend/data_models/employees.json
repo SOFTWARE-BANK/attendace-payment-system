@@ -1,0 +1,90 @@
+{
+    "title": "employees",
+    "type": "object",
+    "description": "직원 마스터",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "description": "PK autoincrement"
+        },
+        "emp_no": {
+            "type": "string",
+            "description": "사번"
+        },
+        "name": {
+            "type": "string",
+            "description": "이름"
+        },
+        "department": {
+            "type": "string",
+            "description": "부서"
+        },
+        "position": {
+            "type": "string",
+            "description": "직급"
+        },
+        "role": {
+            "type": "string",
+            "description": "employee | hr | manager | ceo"
+        },
+        "email": {
+            "type": "string"
+        },
+        "pay_type": {
+            "type": "string",
+            "description": "hourly | monthly"
+        },
+        "hourly_rate": {
+            "type": "number",
+            "description": "시급"
+        },
+        "monthly_salary": {
+            "type": "number",
+            "description": "월 기본급"
+        },
+        "pay_cycle": {
+            "type": "string",
+            "description": "weekly | biweekly | monthly"
+        },
+        "std_start": {
+            "type": "string",
+            "description": "표준 출근시간 HH:MM"
+        },
+        "std_end": {
+            "type": "string",
+            "description": "표준 퇴근시간 HH:MM"
+        },
+        "break_minutes": {
+            "type": "integer",
+            "description": "휴게시간(분)"
+        },
+        "grace_minutes": {
+            "type": "integer",
+            "description": "지각 유예(분)"
+        },
+        "hire_date": {
+            "type": "string",
+            "format": "date"
+        },
+        "annual_leave_days": {
+            "type": "number",
+            "description": "연간 법정휴가 부여일수"
+        },
+        "terminal_user_id": {
+            "type": "string",
+            "description": "Hikvision 단말기 사용자 ID"
+        },
+        "manager_emp_no": {
+            "type": "string",
+            "description": "부서장 사번"
+        },
+        "active": {
+            "type": "boolean"
+        }
+    },
+    "required": [
+        "emp_no",
+        "name",
+        "department"
+    ]
+}

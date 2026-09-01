@@ -46,30 +46,9 @@ export async function loadRuntimeConfig(): Promise<void> {
 
 // Get current configuration
 export function getConfig() {
-  // If config is still loading, return default config to avoid using stale Vite env vars
-  if (configLoading) {
-    console.log('Config still loading, using default config');
-    return defaultConfig;
-  }
-
-  // First try runtime config (for Lambda)
-  if (runtimeConfig) {
-    console.log('Using runtime config');
-    return runtimeConfig;
-  }
-
-  // Then try Vite environment variables (for local development)
-  if (import.meta.env.VITE_API_BASE_URL) {
-    const viteConfig = {
-      API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
-    };
-    console.log('Using Vite environment config');
-    return viteConfig;
-  }
-
-  // Finally fall back to default
-  console.log('Using default config');
-  return defaultConfig;
+  // Force API base URL to localhost for local backend testing
+  // ALWAYS return localhost:8000 to avoid using deployment subdomain
+  return { API_BASE_URL: 'http://127.0.0.1:8000' };
 }
 
 // Dynamic API_BASE_URL getter - this will always return the current config

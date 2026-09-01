@@ -171,7 +171,15 @@ class HikvisionClient:
         }
 
     @staticmethod
-    def _format_device_time(value: datetime, device_timezone: ZoneInfo = ZoneInfo("America/Mexico_City")) -> str:
+    def _format_device_time(value: datetime, device_timezone: Optional[ZoneInfo] = None) -> str:
+        # Avoid creating ZoneInfo at import time (which fails if tzdata isn't available).
+        if device_timezone is None:
+            try:
+                device_timezone = ZoneInfo("America/Mexico_City")
+            except Exception:
+                # Fallback to UTC if the requested timezone is not available
+                device_timezone = timezone.utc
+
         if value.tzinfo is None:
             value = value.replace(tzinfo=device_timezone)
         formatted = value.astimezone(device_timezone).strftime("%Y-%m-%dT%H:%M:%S%z")

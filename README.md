@@ -339,6 +339,4 @@ La documentación técnica detallada está disponible en [.wiki.md](.wiki.md) y 
 - ✅ Sincronización automática con lectores Hikvision
 - ✅ Gestión de empleados con foto y tipo de persona
 - ✅ Deduplicación de registros al sincronizar
-- ✅ Subida de fotos de empleados
-- ✅ Interfaz mejorada con diseño moderno
 - ✅ Menú móvil responsive

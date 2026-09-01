@@ -10,6 +10,7 @@ Gestión de asistencia, aprobaciones, vacaciones, horas extra y nómina desde un
 [![Frontend](https://img.shields.io/badge/frontend-React%20%2B%20Vite-61DAFB?style=for-the-badge&logo=react&logoColor=111827)](app/frontend)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](app/backend/requirements.txt)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](app/frontend/package.json)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org)
 
 **[Guía de instalación](#instalación-en-windows)** · **[Arranque local](#configuración-y-arranque-local)** · **[API](#api-principal)** · **[GitHub](https://github.com/SOFTWARE-BANK/attendace-payment-system)**
 
@@ -61,6 +62,8 @@ flowchart LR
 | Horas extra | Acumula, convierte a vacaciones y compensa retardos. |
 | Nómina | Calcula periodos semanales, quincenales o mensuales y exporta CSV. |
 | Internacionalización | Permite alternar la interfaz entre coreano y español. |
+| Sincronización Hikvision | Sincronización automática con lectores de acceso. |
+| Gestión de empleados | Foto, tipo de persona, registro facial. |
 
 ## Requisitos
 
@@ -128,7 +131,14 @@ El proyecto conserva `pnpm-lock.yaml`; si prefieres pnpm, usa `pnpm install` en 
 
 ### Backend
 
-Desde `app/backend`, define las variables de desarrollo e inicia FastAPI:
+**Opción recomendada:** crea `app/backend/.env` con tu configuración (usa `app/backend/.env.example` como plantilla). El backend lo carga automáticamente al arrancar —gracias a `core/bootstrap_env.py`— y el archivo está excluido de Git. Con el `.env` en su lugar, basta con:
+
+```powershell
+Set-Location ".\app\backend"
+.\.venv\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+Como alternativa, también puedes definir las variables de desarrollo en la propia terminal (estas tienen prioridad sobre el `.env`):
 
 ```powershell
 Set-Location ".\app\backend"
@@ -141,6 +151,21 @@ $env:ENVIRONMENT = "dev"
 $env:IS_LAMBDA = "false"
 .\.venv\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```
+
+Para habilitar la sincronizacion Hikvision, configura tambien estas variables en la misma terminal antes de iniciar el backend:
+
+```powershell
+$env:HIKVISION_HOST = "192.168.1.139"
+$env:HIKVISION_PORT = "80"
+$env:HIKVISION_USERNAME = "admin"
+$env:HIKVISION_USE_HTTPS = "false"
+$env:HIKVISION_SYNC_ENABLED = "true"
+$env:HIKVISION_SYNC_INTERVAL_SECONDS = "60"
+$env:HIKVISION_PASSWORD = Read-Host "Contraseña de Hikvision"
+```
+
+La contrasena se solicita de forma interactiva y no se guarda en el repositorio.
+Con `HIKVISION_SYNC_ENABLED=true`, el backend consulta el lector automaticamente cada 60 segundos y evita duplicar eventos.
 
 El backend estará disponible en:
 
@@ -186,6 +211,9 @@ La documentación interactiva completa está disponible en `/docs`. Las rutas m�
 | Entidades | `/api/v1/entities/*` | Consulta y modificación de datos maestros |
 | Aprobaciones | `/api/v1/attendance/approval/*` | Envío, aprobación y rechazo |
 | Nómina | `/api/v1/attendance/payroll/*` | Cálculo de nómina |
+| Hikvision | `/api/v1/attendance/hikvision/sync` | Sincronizar eventos del terminal por rango de fechas |
+| Sincronización Usuarios | `/api/v1/entities/employees/sync-from-reader` | Sincronizar empleados desde el lector Hikvision |
+| Foto Empleado | `/api/v1/entities/employees/{id}/upload-photo` | Subir foto de empleado |
 | Configuración | `/api/v1/admin/settings` | Configuración administrativa |
 
 ## Comandos del frontend
@@ -201,13 +229,30 @@ npm.cmd run preview   # Previsualización del build
 
 ## Base de datos
 
-Para desarrollo local se recomienda:
+El sistema usa **PostgreSQL** por defecto para desarrollo y producción.
 
 ```text
-DATABASE_URL=sqlite:///./attendance.db
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/timeledger
 ```
 
-Para producción, configura una URL de PostgreSQL compatible con SQLAlchemy, por ejemplo `postgresql://...`. El backend adapta automáticamente el controlador a `asyncpg`.
+### Configuración de PostgreSQL
+
+1. Instalar PostgreSQL 17 desde [postgresql.org](https://www.postgresql.org/download/windows/)
+2. Crear la base de datos:
+   ```sql
+   CREATE DATABASE timeledger;
+   ```
+3. Configurar en `app/backend/.env`:
+   ```env
+   DATABASE_URL=postgresql+asyncpg://usuario:password@localhost:5432/timeledger
+   ```
+
+### Acceso remoto seguro
+
+Para acceder fuera de la red local, se recomienda:
+- **Neon** (neon.tech) - PostgreSQL serverless gratuito
+- **Supabase** (supabase.com) - Con API automática
+- **Railway** (railway.app) - Fácil despliegue
 
 La base local, los logs, los entornos virtuales, `node_modules`, los archivos `.env` y los builds están excluidos mediante `.gitignore`.
 
@@ -236,6 +281,50 @@ Usa `npm.cmd` en lugar de `npm`, como en los comandos de esta guía, o ejecuta P
 
 Ese script está escrito para Bash. En Windows, utiliza los comandos PowerShell de esta guía o ejecútalo desde WSL/Git Bash con sus dependencias disponibles.
 
+## Configuración Hikvision
+
+Para conectar con el lector de acceso Hikvision, configura estas variables en `app/backend/.env`:
+
+```env
+HIKVISION_HOST=192.168.100.75      # IP del lector
+HIKVISION_PORT=80                   # Puerto HTTP
+HIKVISION_USERNAME=admin            # Usuario del lector
+HIKVISION_PASSWORD=tu-contraseña    # Contraseña
+HIKVISION_SYNC_ENABLED=true         # Sincronización automática
+HIKVISION_SYNC_INTERVAL_SECONDS=30  # Intervalo de sincronización
+HIKVISION_STREAM_ENABLED=true       # Push en tiempo real
+HIKVISION_AUTO_PROVISION=true       # Auto-crear empleados nuevos
+```
+
+### Sincronización de empleados
+
+El sistema puede sincronizar automáticamente los usuarios registrados en el lector Hikvision:
+
+1. **Botón "Sincronizar Lector"** en Configuración > Empleados
+2. O vía API: `POST /api/v1/entities/employees/sync-from-reader`
+
+La sincronización:
+- Crea empleados nuevos desde el lector
+- Actualiza nombres de empleados existentes
+- Marca el campo `face_registered` para usuarios con registro facial
+- Usa el ID del lector como `emp_no` y `terminal_user_id`
+
+## Campos de empleados
+
+| Campo | Descripción |
+|---|---|
+| `emp_no` | Número de empleado (único) |
+| `name` | Nombre completo |
+| `department` | Departamento |
+| `position` | Puesto |
+| `role` | Rol: ceo, hr, manager, employee |
+| `person_type` | Tipo: admin, employee |
+| `terminal_user_id` | ID en el lector Hikvision |
+| `face_registered` | Si tiene rostro registrado |
+| `photo_url` | URL de la foto del empleado |
+| `std_start` / `std_end` | Horario laboral |
+| `hire_date` | Fecha de contratación |
+
 ## Estado actual
 
 El proyecto se publica en:
@@ -243,3 +332,13 @@ El proyecto se publica en:
 https://github.com/SOFTWARE-BANK/attendace-payment-system
 
 La documentación técnica detallada está disponible en [.wiki.md](.wiki.md) y [.atoms/ARCHITECTURE.md](.atoms/ARCHITECTURE.md).
+
+### Últimas actualizaciones
+
+- ✅ Migración a PostgreSQL como base de datos principal
+- ✅ Sincronización automática con lectores Hikvision
+- ✅ Gestión de empleados con foto y tipo de persona
+- ✅ Deduplicación de registros al sincronizar
+- ✅ Subida de fotos de empleados
+- ✅ Interfaz mejorada con diseño moderno
+- ✅ Menú móvil responsive

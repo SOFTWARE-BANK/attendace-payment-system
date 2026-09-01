@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Loader2, Plus, RefreshCw, Save, Trash2 } from 'lucide-react';
+import { Loader2, Plus, RefreshCw, Save, Trash2, Upload, ScanLine } from 'lucide-react';
 import { toast } from 'sonner';
 import AppShell from '@/components/AppShell';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ import {
   PAY_EFFECT_KEY,
   ROLE_KEY,
   apiError,
+  callApi,
   createEntity,
   deleteEntity,
   queryAll,
@@ -54,6 +55,8 @@ export default function MasterSettings() {
     description: '',
   });
 
+  const [syncing, setSyncing] = useState(false);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -70,6 +73,23 @@ export default function MasterSettings() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const syncFromReader = async () => {
+    setSyncing(true);
+    try {
+      const result = await callApi<{ message: string; synced: number; created: number; total: number }>(
+        '/api/v1/entities/employees/sync-from-reader',
+        'POST'
+      );
+      toast.success(result.message || 'Sincronización completada');
+      await load();
+      await reload();
+    } catch (e) {
+      toast.error(apiError(e, 'Error al sincronizar'));
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   useEffect(() => {
     void load();
@@ -191,8 +211,16 @@ export default function MasterSettings() {
         <TabsContent value="employees">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t('set.empTitle')}</CardTitle>
-              <CardDescription>{t('set.empDesc')}</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base">{t('set.empTitle')}</CardTitle>
+                  <CardDescription>{t('set.empDesc')}</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => void syncFromReader()} disabled={syncing}>
+                  {syncing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <ScanLine className="mr-1.5 h-3.5 w-3.5" />}
+                  Sincronizar Lector
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="overflow-x-auto">
               {loading ? (

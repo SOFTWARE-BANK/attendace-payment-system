@@ -1,0 +1,23 @@
+[
+    {
+        "emp_no": "EMP001",
+        "name": "Nombre del Empleado 1",
+        "department": "Departamento",
+        "position": "Puesto",
+        "role": "employee",
+        "email": "empleado1@empresa.com",
+        "pay_type": "monthly",
+        "hourly_rate": 0,
+        "monthly_salary": 50000,
+        "pay_cycle": "monthly",
+        "std_start": "09:00",
+        "std_end": "18:00",
+        "break_minutes": 60,
+        "grace_minutes": 10,
+        "hire_date": "2024-01-15",
+        "annual_leave_days": 15,
+        "terminal_user_id": "HK001",
+        "manager_emp_no": "EMP000",
+        "active": true
+    }
+]

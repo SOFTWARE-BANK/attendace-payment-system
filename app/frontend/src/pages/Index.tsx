@@ -183,20 +183,22 @@ export default function Index() {
         {loading ? (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {[0, 1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-28 w-full" />
+              <Skeleton key={i} className="h-32 w-full rounded-xl" />
             ))}
           </div>
         ) : !hasData ? (
-          <Card>
-            <CardContent className="py-16 text-center">
-              <CalendarCheck2 className="mx-auto h-10 w-10 text-muted-foreground" />
-              <p className="mt-3 text-base font-semibold">{t('dash.emptyTitle')}</p>
-              <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">{t('dash.emptyDesc')}</p>
-              <Button className="mt-5" onClick={() => void bootstrap()} disabled={seeding}>
+          <Card className="card-modern">
+            <CardContent className="py-20 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <CalendarCheck2 className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="mt-4 text-lg font-bold">{t('dash.emptyTitle')}</p>
+              <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">{t('dash.emptyDesc')}</p>
+              <Button className="mt-6" onClick={() => void bootstrap()} disabled={seeding}>
                 {seeding ? (
-                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <Database className="mr-1.5 h-4 w-4" />
+                  <Database className="mr-2 h-4 w-4" />
                 )}
                 {t('dash.emptyBtn')}
               </Button>
@@ -214,6 +216,7 @@ export default function Index() {
                     b: fmtCount(summary?.pending_approvals ?? 0),
                   }),
                   icon: Users,
+                  color: 'from-blue-500 to-blue-600',
                 },
                 {
                   label: t('dash.kpi.late'),
@@ -223,6 +226,7 @@ export default function Index() {
                     b: fmtMinutes(summary?.offset_minutes ?? 0),
                   }),
                   icon: Clock,
+                  color: 'from-amber-500 to-orange-500',
                 },
                 {
                   label: t('dash.kpi.otHoliday'),
@@ -232,28 +236,32 @@ export default function Index() {
                     b: fmtMinutes(summary?.holiday_minutes ?? 0),
                   }),
                   icon: Timer,
+                  color: 'from-emerald-500 to-teal-500',
                 },
                 {
                   label: t('dash.kpi.absLeave'),
                   value: `${summary?.absent ?? 0} / ${summary?.leave ?? 0}`,
                   hint: t('dash.kpi.absLeaveHint'),
                   icon: AlertTriangle,
+                  color: 'from-red-500 to-rose-500',
                 },
               ].map((kpi) => {
                 const Icon = kpi.icon;
                 return (
-                  <Card key={kpi.label}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  <div key={kpi.label} className="kpi-card">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                           {kpi.label}
                         </p>
-                        <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <p className="num mt-3 text-3xl font-bold tracking-tight">{kpi.value}</p>
+                        <p className="mt-2 text-xs text-muted-foreground">{kpi.hint}</p>
                       </div>
-                      <p className="num mt-2 text-2xl font-bold tracking-tight">{kpi.value}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">{kpi.hint}</p>
-                    </CardContent>
-                  </Card>
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.color} text-white shadow-lg`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                    </div>
+                  </div>
                 );
               })}
             </div>

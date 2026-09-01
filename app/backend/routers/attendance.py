@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config import settings
 from core.database import get_db
 from models.access_logs import Access_logs
 from models.daily_attendances import Daily_attendances
@@ -20,6 +21,7 @@ from models.overtime_banks import Overtime_banks
 from models.weekend_work_requests import Weekend_work_requests
 from services.approval_flow import ApprovalFlowService
 from services.attendance_engine import AttendanceEngine, as_utc, day_type_of, to_naive
+from services.hikvision_sync import build_hikvision_client, sync_events
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +103,12 @@ class SeedRequest(BaseModel):
     days: int = 14
 
 
+class HikvisionSyncRequest(BaseModel):
+    start_time: datetime
+    end_time: datetime
+    page_size: int = 100
+
+
 # --------------------------------------------------- 원시 출입기록 연동
 @router.post("/import_logs")
 async def import_logs(data: ImportLogsRequest, db: AsyncSession = Depends(get_db)):
@@ -143,6 +151,20 @@ async def import_logs(data: ImportLogsRequest, db: AsyncSession = Depends(get_db
         inserted += 1
     await db.commit()
     return {"inserted": inserted, "skipped": skipped, "message": f"출입기록 {inserted}건 적재 완료"}
+
+
+@router.post("/hikvision/sync")
+async def sync_hikvision(data: HikvisionSyncRequest, db: AsyncSession = Depends(get_db)):
+    """Hikvision ISAPI 이벤트를 읽어 신규 출입기록으로 저장한다."""
+    if data.end_time <= data.start_time:
+        raise HTTPException(status_code=400, detail="end_time debe ser posterior a start_time")
+
+    try:
+        client = build_hikvision_client(settings)
+        return {**await sync_events(db, client, data.start_time, data.end_time, data.page_size), "source": "hikvision_isapi"}
+    except (ConnectionError, ValueError) as exc:
+        logger.error("Hikvision sync failed: %s", exc)
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
 @router.post("/reset_demo")

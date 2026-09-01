@@ -1,20 +1,23 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   CalendarClock,
   FileCheck2,
   LayoutDashboard,
+  Menu,
   Plane,
   ScanFace,
   Settings2,
   Timer,
   Wallet,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/hooks/useSession';
 import { LANG_OPTIONS, Lang, TransKey, useI18n } from '@/lib/i18n';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 const NAV: Array<{ to: string; key: TransKey; icon: typeof LayoutDashboard }> = [
   { to: '/', key: 'nav.dashboard', icon: LayoutDashboard },
@@ -45,16 +48,18 @@ export default function AppShell({ children, title, description, actions }: AppS
   const location = useLocation();
   const { employees, actor, setActorEmpNo } = useSession();
   const { t, lang, setLang } = useI18n();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-sidebar lg:flex">
-        <div className="flex h-16 items-center gap-2 border-b border-border px-5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <ScanFace className="h-4 w-4" />
+    <div className="flex min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
+      {/* Desktop Sidebar */}
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-border/50 bg-sidebar/80 backdrop-blur-sm lg:flex">
+        <div className="flex h-16 items-center gap-3 border-b border-border/50 px-5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20">
+            <ScanFace className="h-5 w-5" />
           </div>
           <div className="min-w-0 leading-tight">
-            <p className="text-sm font-semibold text-sidebar-foreground">{t('app.name')}</p>
+            <p className="text-sm font-bold text-sidebar-foreground">{t('app.name')}</p>
             <p className="truncate text-[11px] text-muted-foreground">{t('app.tagline')}</p>
           </div>
         </div>
@@ -67,25 +72,23 @@ export default function AppShell({ children, title, description, actions }: AppS
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors duration-200',
-                  active
-                    ? 'bg-primary text-primary-foreground font-medium'
-                    : 'text-sidebar-foreground hover:bg-accent hover:text-accent-foreground',
+                  'nav-item',
+                  active ? 'nav-item-active' : 'nav-item-inactive',
                 )}
               >
-                <Icon className="h-4 w-4 shrink-0" />
+                <Icon className={cn('h-4 w-4 shrink-0', active && 'animate-scale-in')} />
                 <span className="truncate">{t(item.key)}</span>
               </Link>
             );
           })}
         </nav>
-        <div className="space-y-3 border-t border-border p-3">
+        <div className="space-y-3 border-t border-border/50 p-4">
           <div>
-            <p className="mb-1.5 px-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               {t('shell.roleSwitch')}
             </p>
             <Select value={actor?.emp_no ?? ''} onValueChange={setActorEmpNo}>
-              <SelectTrigger className="h-9 text-xs">
+              <SelectTrigger className="h-9 text-xs bg-background/50">
                 <SelectValue placeholder={t('shell.selectActor')} />
               </SelectTrigger>
               <SelectContent>
@@ -98,11 +101,11 @@ export default function AppShell({ children, title, description, actions }: AppS
             </Select>
           </div>
           <div>
-            <p className="mb-1.5 px-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               {t('shell.language')}
             </p>
             <Select value={lang} onValueChange={(v) => setLang(v as Lang)}>
-              <SelectTrigger className="h-9 text-xs">
+              <SelectTrigger className="h-9 text-xs bg-background/50">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -117,11 +120,56 @@ export default function AppShell({ children, title, description, actions }: AppS
         </div>
       </aside>
 
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+          <aside className="fixed inset-y-0 left-0 w-72 bg-sidebar shadow-2xl animate-slide-up">
+            <div className="flex h-16 items-center justify-between border-b border-border/50 px-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg">
+                  <ScanFace className="h-5 w-5" />
+                </div>
+                <p className="text-sm font-bold">{t('app.name')}</p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            <nav className="flex flex-col gap-1 p-3">
+              {NAV.map((item) => {
+                const active = location.pathname === item.to;
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      'nav-item',
+                      active ? 'nav-item-active' : 'nav-item-inactive',
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{t(item.key)}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </aside>
+        </div>
+      )}
+
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b border-border bg-background/95 px-5 backdrop-blur lg:px-8">
-          <div className="min-w-0">
-            <h1 className="truncate text-lg font-semibold tracking-tight">{title}</h1>
-            {description ? <p className="truncate text-xs text-muted-foreground">{description}</p> : null}
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b border-border/50 bg-background/80 px-4 backdrop-blur-md lg:px-8">
+          <div className="flex items-center gap-3 min-w-0">
+            <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileMenuOpen(true)}>
+              <Menu className="h-5 w-5" />
+            </Button>
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-bold tracking-tight">{title}</h1>
+              {description ? <p className="truncate text-xs text-muted-foreground">{description}</p> : null}
+            </div>
           </div>
           <div className="flex shrink-0 items-center gap-3">
             {actions}
@@ -138,15 +186,15 @@ export default function AppShell({ children, title, description, actions }: AppS
               </SelectContent>
             </Select>
             {actor ? (
-              <Badge variant="secondary" className="hidden gap-1.5 sm:flex">
+              <Badge variant="secondary" className="hidden gap-1.5 px-3 py-1.5 sm:flex">
                 <span className="font-medium">{actor.name}</span>
-                <span className="text-muted-foreground">{t(ROLE_KEY[actor.role ?? 'employee'])}</span>
+                <span className="text-muted-foreground">· {t(ROLE_KEY[actor.role ?? 'employee'])}</span>
               </Badge>
             ) : null}
           </div>
         </header>
 
-        <nav className="flex gap-1 overflow-x-auto border-b border-border px-3 py-2 lg:hidden">
+        <nav className="flex gap-1 overflow-x-auto border-b border-border/50 px-3 py-2 lg:hidden">
           {NAV.map((item) => {
             const active = location.pathname === item.to;
             return (
@@ -154,8 +202,10 @@ export default function AppShell({ children, title, description, actions }: AppS
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  'whitespace-nowrap rounded-md px-3 py-1.5 text-xs transition-colors',
-                  active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent',
+                  'whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all',
+                  active
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-accent',
                 )}
               >
                 {t(item.key)}
@@ -164,7 +214,7 @@ export default function AppShell({ children, title, description, actions }: AppS
           })}
         </nav>
 
-        <main className="flex-1 p-5 lg:p-8">{children}</main>
+        <main className="flex-1 p-4 lg:p-8 animate-fade-in">{children}</main>
       </div>
     </div>
   );

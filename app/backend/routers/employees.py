@@ -38,7 +38,10 @@ class EmployeesData(BaseModel):
     annual_leave_days: float = None
     terminal_user_id: str = None
     manager_emp_no: str = None
-    active: bool = None
+    photo_url: str = None
+    person_type: str = "employee"
+    face_registered: bool = False
+    active: bool = True
 
 
 class EmployeesUpdateData(BaseModel):
@@ -380,3 +383,92 @@ async def delete_employees(
     except Exception as e:
         logger.error(f"Error deleting employees {id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.post("/sync-from-reader")
+async def sync_from_reader(db: AsyncSession = Depends(get_db)):
+    """Sincroniza empleados desde el lector Hikvision"""
+    try:
+        from services.hikvision_sync import build_hikvision_client
+        from core.config import settings
+        from models.employees import Employees
+        from sqlalchemy import select
+        import uuid
+        
+        client = build_hikvision_client(settings)
+        
+        request_body = {
+            "UserInfoSearchCond": {
+                "searchID": str(uuid.uuid4()),
+                "searchResultPosition": 0,
+                "maxResults": 100,
+            }
+        }
+        
+        response = await client._request(
+            "POST",
+            "/ISAPI/AccessControl/UserInfo/Search?format=json",
+            json=request_body,
+            headers={"Content-Type": "application/json", "Accept": "application/json"}
+        )
+        
+        data = response.json() if response.status_code == 200 else {}
+        
+        users = []
+        user_search = data.get("UserInfoSearch", {})
+        if user_search:
+            user_list = user_search.get("UserInfo", [])
+            if isinstance(user_list, dict):
+                user_list = [user_list]
+            users = user_list
+        
+        synced = 0
+        created = 0
+        
+        for user in users:
+            employee_no = str(user.get("employeeNo", "")).strip()
+            name = str(user.get("name", "")).strip()
+            
+            if not employee_no:
+                continue
+            
+            result = await db.execute(
+                select(Employees).where(
+                    (Employees.emp_no == employee_no) | 
+                    (Employees.terminal_user_id == employee_no)
+                )
+            )
+            existing = result.scalars().first()
+            
+            if existing:
+                existing.name = name or existing.name
+                existing.terminal_user_id = employee_no
+                existing.face_registered = True
+                synced += 1
+            else:
+                new_employee = Employees(
+                    emp_no=employee_no,
+                    name=name or f"Usuario {employee_no}",
+                    department="General",
+                    position="Empleado",
+                    role="employee",
+                    terminal_user_id=employee_no,
+                    person_type="employee",
+                    face_registered=True,
+                    active=True,
+                )
+                db.add(new_employee)
+                created += 1
+        
+        await db.commit()
+        
+        return {
+            "message": f"Sincronizacion completada: {synced} actualizados, {created} creados",
+            "synced": synced,
+            "created": created,
+            "total": len(users),
+        }
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error syncing from reader: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")

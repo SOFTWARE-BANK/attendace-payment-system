@@ -1,3 +1,4 @@
+import asyncio
 import importlib
 import logging
 import os
@@ -5,6 +6,8 @@ import pkgutil
 import traceback
 from contextlib import asynccontextmanager
 from datetime import datetime
+
+import core.bootstrap_env  # carga app/backend/.env antes de leer settings
 
 from core.config import settings
 from fastapi import FastAPI, HTTPException, Request, status
@@ -17,6 +20,8 @@ from utils.logging_utils import cleanup_old_log_files
 from services.database import initialize_database, close_database
 from services.mock_data import initialize_mock_data
 from services.auth import initialize_admin_user
+from services.hikvision_sync import background_sync_loop
+from services.hikvision_stream import stream_events_loop
 # MODULE_IMPORTS_END
 
 
@@ -66,15 +71,35 @@ def setup_logging():
 async def lifespan(app: FastAPI):
     logger = logging.getLogger(__name__)
     logger.info("=== Application startup initiated ===")
+    sync_task = None
+    stream_task = None
+    sync_stop = asyncio.Event()
 
     # MODULE_STARTUP_START
     await initialize_database()
     await initialize_mock_data()
     await initialize_admin_user()
+    sync_enabled = os.getenv("HIKVISION_SYNC_ENABLED", "false").lower() in ("1", "true", "yes", "on")
+    if sync_enabled:
+        interval = max(int(os.getenv("HIKVISION_SYNC_INTERVAL_SECONDS", "60")), 15)
+        sync_task = asyncio.create_task(background_sync_loop(sync_stop, interval))
+        logger.info("Hikvision background sync enabled (interval=%ss)", interval)
+        if os.getenv("HIKVISION_STREAM_ENABLED", "true").lower() in ("1", "true", "yes", "on"):
+            stream_task = asyncio.create_task(stream_events_loop(sync_stop))
+            logger.info("Hikvision alertStream enabled (push en tiempo real)")
     # MODULE_STARTUP_END
 
     logger.info("=== Application startup completed successfully ===")
     yield
+    if stream_task is not None:
+        stream_task.cancel()
+        try:
+            await stream_task
+        except asyncio.CancelledError:
+            pass
+    if sync_task is not None:
+        sync_stop.set()
+        await sync_task
     # MODULE_SHUTDOWN_START
     await close_database()
     # MODULE_SHUTDOWN_END
@@ -98,6 +123,13 @@ app.add_middleware(
     expose_headers=["*"],
 )
 # MODULE_MIDDLEWARE_END
+
+# Serve static files for uploads
+from fastapi.staticfiles import StaticFiles
+import os
+upload_dir = os.path.join(os.path.dirname(__file__), "public", "uploads")
+os.makedirs(upload_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=upload_dir), name="uploads")
 
 
 # Auto-discover and include all routers from the local `routers` package

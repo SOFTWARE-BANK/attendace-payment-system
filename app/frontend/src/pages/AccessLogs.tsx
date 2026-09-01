@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AccessLog, apiError, callApi, queryAll, todayISO } from '@/lib/api';
+import { AccessLog, apiError, callApi, fmtLocalDateTime, fmtLocalTime, localDateOf, queryAll, todayISO } from '@/lib/api';
 import { useSession } from '@/hooks/useSession';
 import { useI18n } from '@/lib/i18n';
 
@@ -30,16 +30,17 @@ export default function AccessLogs() {
   const [payload, setPayload] = useState(SAMPLE);
   const [importing, setImporting] = useState(false);
   const [settling, setSettling] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const rows = await queryAll<AccessLog>('access_logs', { sort: '-event_time', limit: 500 });
       setLogs(rows);
     } catch (e) {
-      toast.error(apiError(e, t('logs.loadFail')));
+      if (!silent) toast.error(apiError(e, t('logs.loadFail')));
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -48,10 +49,28 @@ export default function AccessLogs() {
     void load();
   }, [load]);
 
+  // Auto-refresh: con el alertStream el backend sincroniza cada checada al
+  // instante, así que la pantalla se reconsulta sola cada 5s (en silencio y
+  // solo con la pestaña visible) y también al volver a enfocar la ventana.
+  useEffect(() => {
+    const tick = () => {
+      if (document.visibilityState === 'visible') void load(true);
+    };
+    const id = window.setInterval(tick, 5000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void load(true);
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [load]);
+
   const filtered = useMemo(
     () =>
       logs.filter((l) => {
-        const matchDate = !date || (l.event_time ?? '').slice(0, 10) === date;
+        const matchDate = !date || localDateOf(l.event_time) === date;
         const matchEmp = empFilter === 'all' || l.emp_no === empFilter;
         return matchDate && matchEmp;
       }),
@@ -116,6 +135,45 @@ export default function AccessLogs() {
       toast.error(apiError(e, t('logs.settleFail')));
     } finally {
       setSettling(false);
+    }
+  };
+
+  const handleHikvisionSync = async () => {
+    setSyncing(true);
+    try {
+      const start = new Date(`${date}T00:00:00`).toISOString();
+      const end = new Date(`${date}T23:59:59`).toISOString();
+      const result = await callApi<{
+        fetched: number;
+        inserted: number;
+        duplicates: number;
+        skipped: number;
+        provisioned?: string[];
+        unmatched_employee_ids?: string[];
+      }>(
+        '/api/v1/attendance/hikvision/sync',
+        'POST',
+        { start_time: start, end_time: end },
+      );
+      toast.success(t('logs.syncOk'), {
+        description: t('logs.syncOkDesc', {
+          a: fmtCount(result.fetched),
+          b: fmtCount(result.inserted),
+          c: fmtCount(result.duplicates),
+          d: fmtCount(result.skipped),
+        }),
+      });
+      if (result.provisioned?.length) {
+        toast.success(t('logs.provisioned', { n: result.provisioned.join(', ') }));
+      }
+      if (result.unmatched_employee_ids?.length) {
+        toast.error(`IDs Hikvision sin mapear: ${result.unmatched_employee_ids.join(', ')}`);
+      }
+      await load();
+    } catch (e) {
+      toast.error(apiError(e, t('logs.syncFail')));
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -191,6 +249,10 @@ export default function AccessLogs() {
                   {settling ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
                   {t('logs.settleBtn')}
                 </Button>
+                <Button variant="secondary" onClick={() => void handleHikvisionSync()} disabled={syncing}>
+                  {syncing ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <ScanFace className="mr-1.5 h-4 w-4" />}
+                  {t('logs.syncBtn')}
+                </Button>
               </div>
 
               {grouped.length === 0 ? (
@@ -216,8 +278,8 @@ export default function AccessLogs() {
                         <TableCell className="num text-muted-foreground">{g.emp_no}</TableCell>
                         <TableCell className="font-medium">{g.name}</TableCell>
                         <TableCell className="num">{fmtCount(g.count)}</TableCell>
-                        <TableCell className="num">{g.first ? g.first.slice(11, 16) : '—'}</TableCell>
-                        <TableCell className="num">{g.last ? g.last.slice(11, 16) : '—'}</TableCell>
+                        <TableCell className="num">{g.first ? fmtLocalTime(g.first) : '—'}</TableCell>
+                        <TableCell className="num">{g.last ? fmtLocalTime(g.last) : '—'}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -259,7 +321,7 @@ export default function AccessLogs() {
                 <TableBody>
                   {filtered.slice(0, 200).map((l) => (
                     <TableRow key={l.id}>
-                      <TableCell className="num">{(l.event_time ?? '').replace('T', ' ').slice(0, 16)}</TableCell>
+                      <TableCell className="num">{fmtLocalDateTime(l.event_time)}</TableCell>
                       <TableCell className="num text-muted-foreground">{l.emp_no}</TableCell>
                       <TableCell>{l.employee_name}</TableCell>
                       <TableCell>

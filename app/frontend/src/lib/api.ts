@@ -353,6 +353,35 @@ export function fmtTime(value?: string | null): string {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+/* El backend persiste y devuelve datetimes en UTC (ISO sin offset).
+   Estos helpers los interpretan como UTC y los convierten a la hora local. */
+export function asUtcDate(value?: string | null): Date | null {
+  if (!value) return null;
+  const hasOffset = /[zZ]$|[+-]\d{2}:?\d{2}$/.test(value);
+  const d = new Date(hasOffset ? value : `${value}Z`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+export function fmtLocalTime(value?: string | null): string {
+  const d = asUtcDate(value);
+  if (!d) return '—';
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+export function fmtLocalDateTime(value?: string | null): string {
+  const d = asUtcDate(value);
+  if (!d) return '—';
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+export function localDateOf(value?: string | null): string {
+  const d = asUtcDate(value);
+  if (!d) return '';
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
 export function todayISO(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
